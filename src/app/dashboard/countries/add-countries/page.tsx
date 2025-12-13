@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useCountryDraftStore } from '@/store/countryDraftStore';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
@@ -24,7 +23,6 @@ import {
 } from 'lucide-react';
 import { CountryFormData, CountrySection } from '@/type/country';
 import { CountryOverviewSection } from '@/app/features/countries/components/sections/CountryOverviewSection';
-// import { SharedDynamicFieldsSection } from '@/components/shared/SharedDynamicFieldsSection';
 import dynamic from 'next/dynamic';
 const SharedDynamicFieldsSection = dynamic(
     () => import('@/components/shared/SharedDynamicFieldsSection').then((mod) => mod.SharedDynamicFieldsSection),
@@ -48,24 +46,28 @@ const sections = [
     { id: 'dynamicFields', label: 'Additional Fields', icon: Settings, required: false },
 ] as const;
 
+const initialFormData: CountryFormData = {
+    overview: {
+        name: '',
+        slug: '',
+        description: '',
+    },
+    dynamicFields: [],
+    status: 'draft',
+    intakes: []
+};
+
 export default function AddCountryPage() {
     const router = useRouter();
     const [currentSection, setCurrentSection] = useState<CountrySection>('overview');
-    const [draftId, setDraftId] = useState<string | null>(null);
-
-    const {
-        currentDraft,
-        createDraft,
-        saveDraft,
-        clearCurrentDraft,
-        updateCurrentSection,
-    } = useCountryDraftStore();
+    const [formData, setFormData] = useState<CountryFormData>(initialFormData);
+    const [isInitialized, setIsInitialized] = useState(false);
 
     const createCountryMutation = useCreateCountry();
 
     const saveDraftMutation = useMutation({
         mutationFn: (data: CountryFormData) =>
-            countryService.saveDraft(draftId!, data),
+            countryService.saveDraft('draft-id', data),
         onSuccess: () => {
             toast.success('Country saved as draft');
             router.push('/dashboard/countries');
@@ -76,37 +78,26 @@ export default function AddCountryPage() {
     });
 
     useEffect(() => {
-        if (!currentDraft) {
-            const id = createDraft();
-            setDraftId(id);
-        } else {
-            setDraftId(currentDraft.id);
-            setCurrentSection(currentDraft.currentSection);
-        }
+        setIsInitialized(true);
     }, []);
 
     const handleSectionSave = (section: CountrySection, data: Partial<CountryFormData>) => {
-        if (draftId) {
-            saveDraft(draftId, data, section);
-            toast.success('Progress saved to draft');
-        }
+        setFormData(prev => ({
+            ...prev,
+            ...data,
+        }));
+        toast.success('Progress saved');
     };
 
     const handlePublish = () => {
-        if (!currentDraft) return;
-
         const countryData: CountryFormData = {
-            ...currentDraft,
+            ...formData,
             status: 'published',
         };
 
         createCountryMutation.mutate(countryData, {
             onSuccess: () => {
                 toast.success('Country published successfully!');
-                if (draftId) {
-                    useCountryDraftStore.getState().deleteDraft(draftId);
-                }
-                clearCurrentDraft();
                 router.push('/dashboard/countries');
             },
             onError: () => {
@@ -116,10 +107,8 @@ export default function AddCountryPage() {
     };
 
     const handleSaveDraft = () => {
-        if (!currentDraft) return;
-
         const countryData: CountryFormData = {
-            ...currentDraft,
+            ...formData,
             status: 'draft',
         };
 
@@ -128,7 +117,6 @@ export default function AddCountryPage() {
 
     const goToSection = (section: CountrySection) => {
         setCurrentSection(section);
-        updateCurrentSection(section);
     };
 
     const goToNextSection = () => {
@@ -147,7 +135,7 @@ export default function AddCountryPage() {
         }
     };
 
-    if (!currentDraft) {
+    if (!isInitialized) {
         return (
             <div className="flex items-center justify-center h-screen">
                 <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
@@ -238,7 +226,7 @@ export default function AddCountryPage() {
                         <div className="bg-white rounded-lg border border-gray-200 p-8 shadow-sm">
                             {currentSection === 'overview' && (
                                 <CountryOverviewSection
-                                    data={currentDraft.overview}
+                                    data={formData.overview}
                                     onSave={(data) => handleSectionSave('overview', { overview: data })}
                                     onNext={goToNextSection}
                                 />
@@ -255,7 +243,7 @@ export default function AddCountryPage() {
 
                             {currentSection === 'dynamicFields' && (
                                 <SharedDynamicFieldsSection
-                                    data={currentDraft.dynamicFields}
+                                    data={formData.dynamicFields}
                                     onSave={(data) => handleSectionSave('dynamicFields', { dynamicFields: data })}
                                     onPrevious={goToPreviousSection}
                                     entityName="country"

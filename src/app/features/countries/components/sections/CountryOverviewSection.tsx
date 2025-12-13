@@ -53,21 +53,13 @@ export function CountryOverviewSection({
                     <div>
                         <Label>Country Flag</Label>
                         <div className="mt-2">
-                            <ImageUpload
-                                value={flag}
-                                onChange={(url) => setValue('flag', url)}
-                                onRemove={() => setValue('flag', '')}
-                            />
+
                         </div>
                     </div>
                     <div>
                         <Label>Banner Image</Label>
                         <div className="mt-2">
-                            <ImageUpload
-                                value={banner}
-                                onChange={(url) => setValue('banner', url)}
-                                onRemove={() => setValue('banner', '')}
-                            />
+
                         </div>
                     </div>
                 </div>

@@ -14,12 +14,9 @@ import {
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-// import { useCourseDraftStore } from "@/store/courseDraftStore";
-import { useUniversityDraftStore } from "@/store/universityDraftStore";
 
 export default function DashboardPage() {
-  // const { drafts: courseDrafts } = useCourseDraftStore();
-  // const { drafts: universityDrafts } = useUniversityDraftStore();
+
 
   // This would ideally come from an API
   const stats = [

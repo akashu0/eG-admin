@@ -54,21 +54,13 @@ export function UniversityOverviewSection({
                     <div>
                         <Label>University Logo</Label>
                         <div className="mt-2">
-                            <ImageUpload
-                                value={logo}
-                                onChange={(url) => setValue('logo', url)}
-                                onRemove={() => setValue('logo', '')}
-                            />
+
                         </div>
                     </div>
                     <div>
                         <Label>Banner Image</Label>
                         <div className="mt-2">
-                            <ImageUpload
-                                value={banner}
-                                onChange={(url) => setValue('banner', url)}
-                                onRemove={() => setValue('banner', '')}
-                            />
+
                         </div>
                     </div>
                 </div>
