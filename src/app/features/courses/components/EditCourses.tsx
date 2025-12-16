@@ -34,7 +34,7 @@ const sidebarItems: SidebarItem[] = [
     { id: "visa", label: "Visa Process", icon: <Globe className="h-4 w-4" /> },
     { id: "career", label: "Career Opportunities", icon: <Briefcase className="h-4 w-4" /> },
     { id: "studyCenters", label: "Study Centers", icon: <MapPin className="h-4 w-4" /> },
-    { id: "brochure", label: "Brochure", icon: <Settings className="h-4 w-4" /> },
+    // { id: "brochure", label: "Brochure", icon: <Settings className="h-4 w-4" /> },
     { id: "dynamicFields", label: "Additional Fields", icon: <Settings className="h-4 w-4" /> },
 ];
 
@@ -95,7 +95,7 @@ export default function EditCourses() {
         try {
             setIsPublishing(true);
             const newStatus = courseData?.status === "published" ? "draft" : "published";
-            await courseService.updateCourseStatus(slug!, { status: newStatus });
+            await courseService.updateCourseStatus(slug!, newStatus);
 
             setCourseData(prev => prev ? { ...prev, status: newStatus } : null);
             toast.success(`Course ${newStatus === "published" ? "published" : "unpublished"} successfully`);
@@ -291,13 +291,13 @@ export default function EditCourses() {
                             />
                         )}
 
-                        {activeSection === "brochure" && courseData.brochure && (
+                        {/* {activeSection === "brochure" && courseData.brochure && (
                             <BrochureSection
                                 data={courseData.brochure || []}
                                 onSave={(data) => handleSectionUpdate("brochure", data)}
                                 onNext={() => setActiveSection("dynamicFields")}
                             />
-                        )}
+                        )} */}
 
                         {/* {activeSection === "brochure" && !courseData.brochure && (
                             <div className="text-center py-12">

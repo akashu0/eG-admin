@@ -155,11 +155,7 @@ export function CourseList() {
         isLoading={isFetching}
       />
 
-      <AddCourseModal
-        open={isModalOpen}
-        onOpenChange={setIsModalOpen}
-        onSuccess={handleModalSuccess}
-      />
+
     </div>
   );
 }

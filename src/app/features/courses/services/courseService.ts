@@ -36,12 +36,12 @@ export const courseService = {
       }, {} as Record<string, string>)
     ).toString();
 
-    const response = await apiClient.get(`/courses?${queryString}`);
+    const response = await apiClient.get(`/courses/get-course-admin?${queryString}`);
     return response.data;
   },
 
   getCourseById: async (id: string): Promise<Course> => {
-    const response = await apiClient.get<Course>(`/courses/${id}`);
+    const response = await apiClient.get<Course>(`/courses/get-course-details${id}`);
     return response.data;
   },
 
@@ -50,13 +50,20 @@ export const courseService = {
     return response.data;
   },
 
-  updateCourseStatus: async (slug: string, status: Partial<{ status: 'draft' | 'published' }>): Promise<Course> => {
-    const response = await apiClient.put<Course>(`/courses/${slug}/status`, { status });
+  updateCourseStatus: async (
+    slug: string,
+    status: 'draft' | 'published'
+  ): Promise<Course> => {
+    const response = await apiClient.put<Course>(
+      `/courses/courses-status/${slug}`,
+      { status }
+    );
     return response.data;
   },
 
+
   deleteCourse: async (id: string): Promise<void> => {
-    await apiClient.delete(`/courses/${id}`);
+    await apiClient.delete(`/courses/delete-course/${id}`);
   },
 
   // ============= COURSE CREATION FLOW =============
@@ -133,11 +140,7 @@ export const courseService = {
     return response.data;
   },
 
-  // Publish course (change status from draft to published)
-  publishCourse: async (slug: string): Promise<{ message: string; course: Course }> => {
-    const response = await apiClient.put<{ message: string; course: Course }>(`/courses/${slug}/publish`);
-    return response.data;
-  },
+
 
   // // Upload course image
   // uploadCourseImage: async (file: File): Promise<{ url: string }> => {
