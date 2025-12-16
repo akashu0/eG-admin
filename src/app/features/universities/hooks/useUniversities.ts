@@ -9,23 +9,23 @@ export const useUniversities = (params: any = {}) => {
     });
 };
 
-export const useUniversity = (id: string) => {
-    return useQuery({
-        queryKey: ['university', id],
-        queryFn: () => universityService.getUniversityById(id),
-        enabled: !!id,
-    });
-};
+// export const useUniversity = (id: string) => {
+//     return useQuery({
+//         queryKey: ['university', id],
+//         queryFn: () => universityService.getUniversityById(id),
+//         enabled: !!id,
+//     });
+// };
 
-export const useCreateUniversity = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (data: UniversityFormData) => universityService.createUniversity(data),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['universities'] });
-        },
-    });
-};
+// export const useCreateUniversity = () => {
+//     const queryClient = useQueryClient();
+//     return useMutation({
+//         mutationFn: (data: UniversityFormData) => universityService.createUniversity(data),
+//         onSuccess: () => {
+//             queryClient.invalidateQueries({ queryKey: ['universities'] });
+//         },
+//     });
+// };
 
 export const useUpdateUniversity = () => {
     const queryClient = useQueryClient();
