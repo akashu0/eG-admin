@@ -1,6 +1,6 @@
 // columns.tsx
 import { ColumnDef } from "@tanstack/react-table";
-import { Course } from "@/store/courseStore";
+import { Course } from "@/store/countryStore";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import {

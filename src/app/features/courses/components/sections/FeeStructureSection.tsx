@@ -23,15 +23,53 @@ interface FeeStructureSectionProps {
   onNext: () => void;
 }
 
-const COUNTRIES = [
+export const COUNTRIES = [
+  // 🌍 English-speaking majors
+  { code: 'US', name: 'United States', currency: 'USD', symbol: '$' },
   { code: 'UK', name: 'United Kingdom', currency: 'GBP', symbol: '£' },
-  { code: 'USA', name: 'United States', currency: 'USD', symbol: '$' },
   { code: 'CA', name: 'Canada', currency: 'CAD', symbol: 'C$' },
   { code: 'AU', name: 'Australia', currency: 'AUD', symbol: 'A$' },
-  { code: 'EU', name: 'Europe', currency: 'EUR', symbol: '€' },
+  { code: 'NZ', name: 'New Zealand', currency: 'NZD', symbol: 'NZ$' },
+  { code: 'IE', name: 'Ireland', currency: 'EUR', symbol: '€' },
+
+  // 🇪🇺 Europe (Top Study Destinations)
+  { code: 'DE', name: 'Germany', currency: 'EUR', symbol: '€' },
+  { code: 'FR', name: 'France', currency: 'EUR', symbol: '€' },
+  { code: 'NL', name: 'Netherlands', currency: 'EUR', symbol: '€' },
+  { code: 'IT', name: 'Italy', currency: 'EUR', symbol: '€' },
+  { code: 'ES', name: 'Spain', currency: 'EUR', symbol: '€' },
+  { code: 'SE', name: 'Sweden', currency: 'SEK', symbol: 'kr' },
+  { code: 'NO', name: 'Norway', currency: 'NOK', symbol: 'kr' },
+  { code: 'FI', name: 'Finland', currency: 'EUR', symbol: '€' },
+  { code: 'PL', name: 'Poland', currency: 'PLN', symbol: 'zł' },
+  { code: 'AT', name: 'Austria', currency: 'EUR', symbol: '€' },
+  { code: 'CH', name: 'Switzerland', currency: 'CHF', symbol: 'CHF' },
+
+  // 🌏 South Asia
   { code: 'IN', name: 'India', currency: 'INR', symbol: '₹' },
-  { code: 'UAE', name: 'UAE', currency: 'AED', symbol: 'AED' },
+  { code: 'PK', name: 'Pakistan', currency: 'PKR', symbol: '₨' },
+  { code: 'BD', name: 'Bangladesh', currency: 'BDT', symbol: '৳' },
+  { code: 'LK', name: 'Sri Lanka', currency: 'LKR', symbol: 'Rs' },
+  { code: 'NP', name: 'Nepal', currency: 'NPR', symbol: 'Rs' },
+
+  // 🌏 East & Southeast Asia (Growing Study Markets)
+  { code: 'CN', name: 'China', currency: 'CNY', symbol: '¥' },
+  { code: 'JP', name: 'Japan', currency: 'JPY', symbol: '¥' },
+  { code: 'KR', name: 'South Korea', currency: 'KRW', symbol: '₩' },
+  { code: 'SG', name: 'Singapore', currency: 'SGD', symbol: 'S$' },
+  { code: 'MY', name: 'Malaysia', currency: 'MYR', symbol: 'RM' },
+  { code: 'TH', name: 'Thailand', currency: 'THB', symbol: '฿' },
+  { code: 'PH', name: 'Philippines', currency: 'PHP', symbol: '₱' },
+  { code: 'VN', name: 'Vietnam', currency: 'VND', symbol: '₫' },
+  { code: 'ID', name: 'Indonesia', currency: 'IDR', symbol: 'Rp' },
+
+  // 🌍 Middle East (Popular for Medical / Engineering)
+  { code: 'AE', name: 'United Arab Emirates', currency: 'AED', symbol: 'د.إ' },
+  { code: 'QA', name: 'Qatar', currency: 'QAR', symbol: '﷼' },
+  { code: 'SA', name: 'Saudi Arabia', currency: 'SAR', symbol: '﷼' },
+  { code: 'OM', name: 'Oman', currency: 'OMR', symbol: '﷼' },
 ];
+
 
 export function FeeStructureSection({
   data = [],

@@ -1,5 +1,5 @@
 import apiClient from "@/lib/apiClient";
-import { PaginationMeta } from "@/store/courseStore";
+import { PaginationMeta } from "@/store/countryStore";
 import { University } from "@/store/universityStore";
 import { UniversityFormData } from "@/type/university";
 

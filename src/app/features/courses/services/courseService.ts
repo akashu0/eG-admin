@@ -1,5 +1,6 @@
 import apiClient from "@/lib/apiClient";
 import { Course, PaginationMeta } from "@/store/courseStore";
+
 import { CourseFormData } from "@/type/courseForm";
 
 export interface CourseQueryParams {

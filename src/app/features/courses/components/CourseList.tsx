@@ -4,13 +4,13 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { CourseDataTable } from "./CourseDataTable";
 import { createColumns } from "./columns";
-import { Course, PaginationMeta } from "@/store/courseStore";
 import { Loader2, Plus, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { courseService, CourseQueryParams } from "../services/courseService";
 import { toast } from "sonner";
 import { AddCourseModal } from "./AddCourseModal";
 import { useRouter } from "next/navigation";
+import { Course, PaginationMeta } from "@/store/courseStore";
 
 export function CourseList() {
   const router = useRouter();
@@ -38,9 +38,7 @@ export function CourseList() {
         limit: response.pagination.limit,
         total: response.pagination.total,
         totalPages: response.pagination.totalPages,
-        currentPage: response.pagination.page,
-        itemsPerPage: response.pagination.limit,
-        totalItems: response.pagination.total,
+        pages: response.pagination.pages,
         hasNextPage: response.pagination.hasNextPage,
         hasPrevPage: response.pagination.hasPrevPage,
       };
