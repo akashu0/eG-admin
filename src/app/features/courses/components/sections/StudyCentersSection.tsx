@@ -194,18 +194,7 @@ export function StudyCentersSection({
                                         <span>{center.address}</span>
                                       </div>
                                     )}
-                                    {center.contactPerson && (
-                                      <div className="flex items-center gap-2">
-                                        <User className="h-3.5 w-3.5" />
-                                        <span>{center.contactPerson}</span>
-                                      </div>
-                                    )}
-                                    {center.contactNumber && (
-                                      <div className="flex items-center gap-2">
-                                        <Phone className="h-3.5 w-3.5" />
-                                        <span>{center.contactNumber}</span>
-                                      </div>
-                                    )}
+
                                   </div>
                                 </div>
                                 <span
@@ -257,12 +246,6 @@ export function StudyCentersSection({
                               <MapPinned className="h-3.5 w-3.5" />
                               <span>{center.location}</span>
                             </div>
-                            {center.contactPerson && (
-                              <div className="flex items-center gap-2">
-                                <User className="h-3.5 w-3.5" />
-                                <span>{center.contactPerson}</span>
-                              </div>
-                            )}
                           </div>
                         </Card>
                       ))}

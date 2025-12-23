@@ -1,7 +1,7 @@
 import apiClient from "@/lib/apiClient";
 import { Course, PaginationMeta } from "@/store/courseStore";
 
-import { CourseFormData } from "@/type/courseForm";
+import { Brochure, CourseFormData } from "@/type/courseForm";
 
 export interface CourseQueryParams {
   page?: number;
@@ -131,14 +131,35 @@ export const courseService = {
     return response.data;
   },
 
-  updateBrochure: async (slug: string, data: CourseFormData['brochure']) => {
-    const response = await apiClient.put(`/courses/courses-brochure/${slug}`, data);
-    return response.data;
-  },
+  // updateBrochure: async (slug: string, data: CourseFormData['brochure']) => {
+  //   const response = await apiClient.put(`/courses/courses-brochure/${slug}`, data);
+  //   return response.data;
+  // },
 
   updateDynamicFields: async (slug: string, data: CourseFormData['dynamicFields']) => {
     const response = await apiClient.put(`/courses/courses-dynamicFields/${slug}`, data);
     return response.data;
+  },
+
+  uploadBrochure: async (file: File): Promise<{ url: string }> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await apiClient.post<{ url: string }>('/courses/upload/brochure', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  updateBrochure: async (slug: string, brochures: Brochure[]): Promise<void> => {
+    await apiClient.put(`/courses/courses-brochure/${slug}`, { brochures });
+  },
+
+  deleteBrochure: async (slug: string, fileUrl: string): Promise<void> => {
+    await apiClient.delete(`/courses/courses-brochure/${slug}`, {
+      data: { fileUrl }
+    });
   },
 
 
@@ -156,14 +177,14 @@ export const courseService = {
   // },
 
   // Upload brochure
-  uploadBrochure: async (file: File): Promise<{ url: string }> => {
-    const formData = new FormData();
-    formData.append('file', file);
-    const response = await apiClient.post<{ url: string }>('/courses/upload/brochure', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    return response.data;
-  },
+  // uploadBrochure: async (file: File): Promise<{ url: string }> => {
+  //   const formData = new FormData();
+  //   formData.append('file', file);
+  //   const response = await apiClient.post<{ url: string }>('/courses/upload/brochure', formData, {
+  //     headers: {
+  //       'Content-Type': 'multipart/form-data',
+  //     },
+  //   });
+  //   return response.data;
+  // },
 };

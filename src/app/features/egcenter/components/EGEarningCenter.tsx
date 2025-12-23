@@ -36,8 +36,8 @@ export interface EarningCenter {
     id: string;
     name: string;
     location: string;
-    contactPerson: string;
-    contactNumber: string;
+    // contactPerson: string;
+    // contactNumber: string;
     address: string;
     status: "active" | "inactive";
     createdAt: string;
@@ -82,14 +82,14 @@ export default function EGEarningCenter() {
             accessorKey: "location",
             header: "Location",
         },
-        {
-            accessorKey: "contactPerson",
-            header: "Contact Person",
-        },
-        {
-            accessorKey: "contactNumber",
-            header: "Contact Number",
-        },
+        // {
+        //     accessorKey: "contactPerson",
+        //     header: "Contact Person",
+        // },
+        // {
+        //     accessorKey: "contactNumber",
+        //     header: "Contact Number",
+        // },
         {
             accessorKey: "address",
             header: "Address",

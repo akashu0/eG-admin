@@ -49,6 +49,7 @@ export interface FeeStructure {
   vat: number;
   total: number;
   currency: string;
+  dynamicFields?: DynamicField[];
 }
 
 export interface DocumentRequired {

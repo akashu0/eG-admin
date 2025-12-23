@@ -9,8 +9,6 @@ const transformCenter = (center: CenterResponse): EarningCenter => ({
     id: center._id,
     name: center.name,
     location: center.location,
-    contactPerson: center.contactPerson,
-    contactNumber: center.contactNumber,
     address: center.address,
     status: center.status,
     createdAt: center.createdAt,

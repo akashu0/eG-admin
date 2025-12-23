@@ -39,8 +39,7 @@ export function AddEditCenterModal({
     const [formData, setFormData] = useState({
         name: "",
         location: "",
-        contactPerson: "",
-        contactNumber: "",
+
         address: "",
         status: "active" as "active" | "inactive",
     });
@@ -52,8 +51,6 @@ export function AddEditCenterModal({
             setFormData({
                 name: center.name,
                 location: center.location,
-                contactPerson: center.contactPerson,
-                contactNumber: center.contactNumber,
                 address: center.address,
                 status: center.status,
             });
@@ -61,8 +58,6 @@ export function AddEditCenterModal({
             setFormData({
                 name: "",
                 location: "",
-                contactPerson: "",
-                contactNumber: "",
                 address: "",
                 status: "active",
             });
@@ -171,37 +166,9 @@ export function AddEditCenterModal({
                         )}
                     </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="contactPerson">
-                            Contact Person
-                        </Label>
-                        <Input
-                            id="contactPerson"
-                            placeholder="Enter contact person name"
-                            value={formData.contactPerson}
-                            onChange={(e) => handleChange("contactPerson", e.target.value)}
-                            className={errors.contactPerson ? "border-red-500" : ""}
-                        />
-                        {errors.contactPerson && (
-                            <p className="text-sm text-red-500">{errors.contactPerson}</p>
-                        )}
-                    </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="contactNumber">
-                            Contact Number
-                        </Label>
-                        <Input
-                            id="contactNumber"
-                            placeholder="Enter contact number"
-                            value={formData.contactNumber}
-                            onChange={(e) => handleChange("contactNumber", e.target.value)}
-                            className={errors.contactNumber ? "border-red-500" : ""}
-                        />
-                        {errors.contactNumber && (
-                            <p className="text-sm text-red-500">{errors.contactNumber}</p>
-                        )}
-                    </div>
+
+
 
                     <div className="space-y-2">
                         <Label htmlFor="address">

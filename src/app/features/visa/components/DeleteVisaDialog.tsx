@@ -36,7 +36,7 @@ export function DeleteVisaDialog({
         setIsDeleting(true);
 
         try {
-            await visaService.deleteVisa(visa._id);
+            await visaService.deleteVisa(visa.id);
             toast.success("Visa deleted successfully");
             onSuccess();
             onClose();

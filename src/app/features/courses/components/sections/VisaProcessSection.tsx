@@ -13,19 +13,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { visaService, } from '@/app/features/visa/services/visaService';
+import { visaService } from '@/app/features/visa/services/visaService';
 import { Visa } from '@/type/visa';
 
-// Accept both old and new data structures for backward compatibility
 interface VisaProcessSectionProps {
-  data:
-  | { visaId?: string; country?: string } // New structure
-  | Array<any> // Old structure (VisaProcess[])
-  | null;
+  data: Array<{ visaId: any }> | any[] | null;
   onSave: (data: { visaId: string }) => void;
   onNext: () => void;
 }
-
 export function VisaProcessSection({
   data,
   onSave,
@@ -35,11 +30,23 @@ export function VisaProcessSection({
   const [isLoading, setIsLoading] = useState(true);
   const [selectedVisa, setSelectedVisa] = useState<Visa | null>(null);
 
-  // Handle both old and new data structures
+  // Extract visaId from the data structure
   const getVisaId = () => {
-    if (!data) return '';
-    if (Array.isArray(data)) return ''; // Old structure, no visaId
-    return data.visaId || ''; // New structure
+    if (!data || !Array.isArray(data) || data.length === 0) return '';
+
+    // Handle nested visaId object structure from API
+    const firstVisa = data[0];
+    if (firstVisa?.visaId) {
+      // If visaId is an object with _id
+      if (typeof firstVisa.visaId === 'object' && firstVisa.visaId._id) {
+        return firstVisa.visaId._id;
+      }
+      // If visaId is a string
+      if (typeof firstVisa.visaId === 'string') {
+        return firstVisa.visaId;
+      }
+    }
+    return '';
   };
 
   const { handleSubmit, watch, setValue } = useForm({
@@ -58,8 +65,10 @@ export function VisaProcessSection({
   // Update selected visa when visaId changes
   useEffect(() => {
     if (visaId && visas.length > 0) {
-      const visa = visas.find(v => v._id === visaId);
+      const visa = visas.find(v => v.id === visaId);
       setSelectedVisa(visa || null);
+    } else {
+      setSelectedVisa(null);
     }
   }, [visaId, visas]);
 
@@ -68,13 +77,9 @@ export function VisaProcessSection({
       setIsLoading(true);
       const response = await visaService.getAllVisas({ status: 'active' });
 
-      console.log(response);
       // Extract the data array from the response
-
       const visaData = Array.isArray(response) ? response : (response as any)?.data || [];
-
       setVisas(visaData);
-
 
       // Set default value if data exists
       const visaId = getVisaId();
@@ -83,13 +88,13 @@ export function VisaProcessSection({
       }
     } catch (error) {
       console.error('Error fetching visas:', error);
-      setVisas([]); // Set empty array on error
+      setVisas([]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Group visas by country - add safety check
+  // Group visas by country
   const visasByCountry = Array.isArray(visas)
     ? visas.reduce((acc, visa) => {
       if (!acc[visa.country]) {
@@ -132,6 +137,21 @@ export function VisaProcessSection({
 
         <Card className="p-6 bg-white border-gray-200">
           <div className="space-y-6">
+            {/* Currently Selected Visa Info */}
+            {data && data.length > 0 && data[0]?.visaId && typeof data[0].visaId === 'object' && (
+              <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <FileText className="h-5 w-5 text-blue-600 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-blue-900">Currently Selected</p>
+                    <p className="text-lg font-semibold text-blue-700">
+                      {data[0].visaId.country} Visa Process
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Visa Selection by Country */}
             <div>
               <Label htmlFor="visaId" className="text-base font-semibold mb-3 block">
@@ -153,16 +173,13 @@ export function VisaProcessSection({
                   ) : (
                     Object.entries(visasByCountry).map(([country, countryVisas]) => (
                       <div key={country}>
-                        {/* Country Header */}
                         <div className="px-2 py-2 text-sm font-semibold text-gray-900 bg-gray-50 sticky top-0">
                           {country}
                         </div>
-
-                        {/* Visas under this country */}
                         {countryVisas.map((visa) => (
                           <SelectItem
-                            key={visa._id}
-                            value={visa._id}
+                            key={visa.id}
+                            value={visa.id}
                             className="pl-6"
                           >
                             <div className="flex items-center gap-2">

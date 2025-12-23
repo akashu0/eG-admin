@@ -34,7 +34,7 @@ const sidebarItems: SidebarItem[] = [
     { id: "visa", label: "Visa Process", icon: <Globe className="h-4 w-4" /> },
     { id: "career", label: "Career Opportunities", icon: <Briefcase className="h-4 w-4" /> },
     { id: "studyCenters", label: "Study Centers", icon: <MapPin className="h-4 w-4" /> },
-    // { id: "brochure", label: "Brochure", icon: <Settings className="h-4 w-4" /> },
+    { id: "brochure", label: "Brochure", icon: <Settings className="h-4 w-4" /> },
     { id: "dynamicFields", label: "Additional Fields", icon: <Settings className="h-4 w-4" /> },
 ];
 
@@ -291,25 +291,13 @@ export default function EditCourses() {
                             />
                         )}
 
-                        {/* {activeSection === "brochure" && courseData.brochure && (
+                        {activeSection === "brochure" && courseData.brochure && (
                             <BrochureSection
                                 data={courseData.brochure || []}
                                 onSave={(data) => handleSectionUpdate("brochure", data)}
-                                onNext={() => setActiveSection("dynamicFields")}
-                            />
-                        )} */}
+                                onNext={() => setActiveSection("dynamicFields")} courseSlug={""} />
+                        )}
 
-                        {/* {activeSection === "brochure" && !courseData.brochure && (
-                            <div className="text-center py-12">
-                                <p className="text-gray-500 mb-4">No brochure available</p>
-                                <Button
-                                    onClick={() => setActiveSection("additionalFields")}
-                                    variant="outline"
-                                >
-                                    Continue to Additional Fields
-                                </Button>
-                            </div>
-                        )} */}
 
                         {activeSection === "dynamicFields" && (
                             <DynamicFieldsSection

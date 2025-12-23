@@ -12,8 +12,8 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
-import { Calculator, Loader2, Plus, Trash2, Check } from 'lucide-react';
-import { FeeStructure } from '@/type/courseForm';
+import { Calculator, Loader2, Plus, Trash2, Check, X, Edit } from 'lucide-react';
+import { FeeStructure, DynamicField } from '@/type/courseForm';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
@@ -70,7 +70,6 @@ export const COUNTRIES = [
   { code: 'OM', name: 'Oman', currency: 'OMR', symbol: '﷼' },
 ];
 
-
 export function FeeStructureSection({
   data = [],
   onSave,
@@ -80,15 +79,18 @@ export function FeeStructureSection({
   const [savedFees, setSavedFees] = useState<FeeStructure[]>(data);
   const [isAddingNew, setIsAddingNew] = useState(data.length === 0);
   const [selectedCountry, setSelectedCountry] = useState<string>('');
+  const [dynamicFields, setDynamicFields] = useState<DynamicField[]>([]);
+  const [newFieldName, setNewFieldName] = useState('');
+  const [editingCountry, setEditingCountry] = useState<string | null>(null);
 
-  // Get available countries (not yet added)
+  // Get available countries (not yet added, or currently editing)
   const getAvailableCountries = () => {
     return COUNTRIES.filter(
-      country => !savedFees.some(fee => fee.country === country.code)
+      country => !savedFees.some(fee => fee.country === country.code) || country.code === editingCountry
     );
   };
 
-  const getCurrentCountryData = (country: string): FeeStructure => {
+  const getCurrentCountryData = (country: string): Omit<FeeStructure, 'total'> => {
     const countryInfo = COUNTRIES.find(c => c.code === country);
     return {
       country: country,
@@ -97,12 +99,12 @@ export function FeeStructureSection({
       accommodation: 0,
       airportTransfer: 0,
       vat: 0,
-      total: 0,
       currency: countryInfo?.currency || 'GBP',
+      dynamicFields: [],
     };
   };
 
-  const { register, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm<FeeStructure>({
+  const { register, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm<Omit<FeeStructure, 'total'>>({
     defaultValues: getCurrentCountryData(selectedCountry),
   });
 
@@ -110,45 +112,124 @@ export function FeeStructureSection({
   useEffect(() => {
     if (selectedCountry) {
       const countryInfo = COUNTRIES.find(c => c.code === selectedCountry);
-      reset(getCurrentCountryData(selectedCountry));
+
+      // If editing, load existing data
+      if (editingCountry === selectedCountry) {
+        const existingFee = savedFees.find(fee => fee.country === selectedCountry);
+        if (existingFee) {
+          reset({
+            country: existingFee.country,
+            programTuitionFee: existingFee.programTuitionFee,
+            studentVisaFee: existingFee.studentVisaFee,
+            accommodation: existingFee.accommodation,
+            airportTransfer: existingFee.airportTransfer,
+            vat: existingFee.vat,
+            currency: existingFee.currency,
+            dynamicFields: existingFee.dynamicFields,
+          });
+          setDynamicFields(existingFee.dynamicFields || []);
+        }
+      } else {
+        reset(getCurrentCountryData(selectedCountry));
+        setDynamicFields([]);
+      }
+
       if (countryInfo) {
         setValue('currency', countryInfo.currency);
       }
     }
-  }, [selectedCountry, reset, setValue]);
+  }, [selectedCountry, reset, setValue, editingCountry, savedFees]);
 
-  const currency = watch('currency');
   const programTuitionFee = watch('programTuitionFee') || 0;
   const studentVisaFee = watch('studentVisaFee') || 0;
   const accommodation = watch('accommodation') || 0;
   const airportTransfer = watch('airportTransfer') || 0;
   const vat = watch('vat') || 0;
 
-  // Auto-calculate total
-  useEffect(() => {
+  // Calculate total including dynamic fields with numeric values
+  const calculateTotal = () => {
     const subtotal =
       Number(programTuitionFee) +
       Number(studentVisaFee) +
       Number(accommodation) +
       Number(airportTransfer);
 
-    const vatAmount = subtotal * (Number(vat) / 100);
-    const total = subtotal + vatAmount;
+    // Add dynamic fields that have numeric values
+    const dynamicFieldsTotal = dynamicFields.reduce((sum, field) => {
+      const numValue = parseFloat(field.fieldValue);
+      return sum + (isNaN(numValue) ? 0 : numValue);
+    }, 0);
 
-    setValue('total', Number(total.toFixed(2)));
-  }, [programTuitionFee, studentVisaFee, accommodation, airportTransfer, vat, setValue]);
+    const totalBeforeVAT = subtotal + dynamicFieldsTotal;
+    const vatAmount = totalBeforeVAT * (Number(vat) / 100);
+    return totalBeforeVAT + vatAmount;
+  };
 
-  const handleSaveCountry = async (formData: FeeStructure) => {
+  // Add dynamic field
+  const handleAddDynamicField = () => {
+    if (!newFieldName.trim()) return;
+
+    const newField: DynamicField = {
+      id: `field_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      fieldName: newFieldName.trim(),
+      fieldValue: '',
+      fieldType: 'text',
+      order: dynamicFields.length,
+    };
+
+    setDynamicFields([...dynamicFields, newField]);
+    setNewFieldName('');
+  };
+
+  // Update dynamic field value
+  const handleUpdateDynamicField = (id: string, value: string) => {
+    setDynamicFields(prev =>
+      prev.map(field =>
+        field.id === id ? { ...field, fieldValue: value } : field
+      )
+    );
+  };
+
+  // Remove dynamic field
+  const handleRemoveDynamicField = (id: string) => {
+    setDynamicFields(prev => prev.filter(field => field.id !== id));
+  };
+
+  const handleSaveCountry = async (formData: Omit<FeeStructure, 'total'>) => {
     if (!selectedCountry) {
       return;
     }
 
-    const newSavedFees = [...savedFees, formData];
+    const feeStructureData: FeeStructure = {
+      ...formData,
+      dynamicFields: dynamicFields,
+      total: calculateTotal(),
+    };
+
+    let newSavedFees;
+    if (editingCountry) {
+      // Update existing
+      newSavedFees = savedFees.map(fee =>
+        fee.country === editingCountry ? feeStructureData : fee
+      );
+    } else {
+      // Add new
+      newSavedFees = [...savedFees, feeStructureData];
+    }
+
     setSavedFees(newSavedFees);
 
-    // Reset form for next country
+    // Reset form
     setSelectedCountry('');
+    setDynamicFields([]);
     setIsAddingNew(false);
+    setEditingCountry(null);
+  };
+
+  const handleEditCountry = (countryCode: string) => {
+    setSelectedCountry(countryCode);
+    setEditingCountry(countryCode);
+    setIsAddingNew(true);
   };
 
   const handleRemoveCountry = (countryCode: string) => {
@@ -163,7 +244,9 @@ export function FeeStructureSection({
 
     try {
       setIsSubmitting(true);
-      await onSave(savedFees);
+      // Remove 'total' from each fee structure before sending to backend
+      const dataForBackend = savedFees.map(({ total, ...rest }) => rest);
+      await onSave(dataForBackend as any);
       onNext();
     } catch (error) {
       console.error('Error saving fee structures:', error);
@@ -176,12 +259,18 @@ export function FeeStructureSection({
     return COUNTRIES.find(c => c.code === code);
   };
 
+  // Helper to check if a field value is numeric
+  const isNumericField = (value: string) => {
+    const numValue = parseFloat(value);
+    return !isNaN(numValue);
+  };
+
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Fee Structure</h2>
         <p className="text-sm text-gray-600 mb-6">
-          Add fee structures for different countries. You can add multiple countries.
+          Add fee structures for different countries. You can add custom fields for country-specific fees like application fees or taxes.
         </p>
 
         {/* Saved Fee Structures */}
@@ -232,24 +321,61 @@ export function FeeStructureSection({
                               {countryInfo?.symbol}{fee.airportTransfer.toFixed(2)}
                             </span>
                           </div>
+                          {fee.vat > 0 && (
+                            <div>
+                              <span className="text-gray-600">VAT:</span>
+                              <span className="ml-2 font-medium">
+                                {fee.vat}%
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Dynamic Fields Display */}
+                          {fee.dynamicFields && fee.dynamicFields.length > 0 && (
+                            <>
+                              {fee.dynamicFields.map((field) => (
+                                <div key={field.id}>
+                                  <span className="text-gray-600">{field.fieldName}:</span>
+                                  <span className="ml-2 font-medium">
+                                    {isNumericField(field.fieldValue)
+                                      ? `${countryInfo?.symbol}${parseFloat(field.fieldValue).toFixed(2)}`
+                                      : field.fieldValue
+                                    }
+                                  </span>
+                                </div>
+                              ))}
+                            </>
+                          )}
                         </div>
                         <div className="mt-3 pt-3 border-t flex items-center justify-between">
                           <span className="text-gray-600">Total Amount:</span>
                           <span className="text-lg font-bold text-gray-900">
-                            {countryInfo?.symbol}{fee.total.toFixed(2)}
+                            {countryInfo?.symbol}{fee.total?.toFixed(2) || '0.00'}
                           </span>
                         </div>
                       </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemoveCountry(fee.country)}
-                        disabled={isSubmitting}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditCountry(fee.country)}
+                          disabled={isSubmitting || isAddingNew}
+                          className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveCountry(fee.country)}
+                          disabled={isSubmitting || isAddingNew}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   </Card>
                 );
@@ -276,7 +402,9 @@ export function FeeStructureSection({
         {isAddingNew && (
           <form onSubmit={handleSubmit(handleSaveCountry)} className="space-y-6">
             <Card className="p-6 bg-white border-gray-200">
-              <h3 className="font-semibold text-lg mb-4">Add Fee Structure</h3>
+              <h3 className="font-semibold text-lg mb-4">
+                {editingCountry ? 'Edit Fee Structure' : 'Add Fee Structure'}
+              </h3>
 
               {/* Country Dropdown */}
               <div className="mb-6">
@@ -284,6 +412,7 @@ export function FeeStructureSection({
                 <Select
                   value={selectedCountry}
                   onValueChange={(value) => setSelectedCountry(value)}
+                  disabled={!!editingCountry}
                 >
                   <SelectTrigger className="mt-2">
                     <SelectValue placeholder="Choose a country" />
@@ -296,7 +425,7 @@ export function FeeStructureSection({
                     ))}
                   </SelectContent>
                 </Select>
-                {!selectedCountry && (
+                {!selectedCountry && !editingCountry && (
                   <p className="text-sm text-gray-500 mt-1">
                     Select a country to add fee structure
                   </p>
@@ -333,6 +462,7 @@ export function FeeStructureSection({
                         })}
                         className="pl-8"
                         placeholder="0.00"
+                        onWheel={(e) => e.currentTarget.blur()}
                       />
                     </div>
                     {errors.programTuitionFee && (
@@ -355,6 +485,7 @@ export function FeeStructureSection({
                         {...register('studentVisaFee', { valueAsNumber: true })}
                         className="pl-8"
                         placeholder="0.00"
+                        onWheel={(e) => e.currentTarget.blur()}
                       />
                     </div>
                   </div>
@@ -372,6 +503,7 @@ export function FeeStructureSection({
                         {...register('accommodation', { valueAsNumber: true })}
                         className="pl-8"
                         placeholder="0.00"
+                        onWheel={(e) => e.currentTarget.blur()}
                       />
                     </div>
                   </div>
@@ -389,6 +521,7 @@ export function FeeStructureSection({
                         {...register('airportTransfer', { valueAsNumber: true })}
                         className="pl-8"
                         placeholder="0.00"
+                        onWheel={(e) => e.currentTarget.blur()}
                       />
                     </div>
                   </div>
@@ -406,6 +539,7 @@ export function FeeStructureSection({
                           max: { value: 100, message: 'VAT cannot exceed 100%' }
                         })}
                         placeholder="0"
+                        onWheel={(e) => e.currentTarget.blur()}
                       />
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
                         %
@@ -413,6 +547,85 @@ export function FeeStructureSection({
                     </div>
                     {errors.vat && (
                       <p className="text-sm text-red-600 mt-1">{errors.vat.message}</p>
+                    )}
+                  </div>
+
+                  {/* Dynamic Fields Section */}
+                  <div className="pt-4 border-t">
+                    <div className="mb-4">
+                      <Label className="text-base font-semibold">Additional Fees (Optional)</Label>
+                      <p className="text-sm text-gray-600 mt-1">
+                        Add country-specific fees. Enter numeric values to include them in total calculation.
+                      </p>
+                    </div>
+
+                    {/* Add Dynamic Field Input */}
+                    <div className="flex gap-2 mb-4">
+                      <Input
+                        placeholder="e.g., Application Fee, Processing Fee, Service Tax"
+                        value={newFieldName}
+                        onChange={(e) => setNewFieldName(e.target.value)}
+                        onWheel={(e) => e.currentTarget.blur()}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddDynamicField();
+                          }
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        onClick={handleAddDynamicField}
+                        disabled={!newFieldName.trim()}
+                        variant="outline"
+                        className="whitespace-nowrap"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Field
+                      </Button>
+                    </div>
+
+                    {/* Dynamic Fields List */}
+                    {dynamicFields.length > 0 && (
+                      <div className="space-y-3">
+                        {dynamicFields.map((field) => (
+                          <div key={field.id} className="flex gap-2 items-start">
+                            <div className="flex-1">
+                              <Label className="text-sm mb-1">
+                                {field.fieldName}
+                                {isNumericField(field.fieldValue) && (
+                                  <Badge variant="secondary" className="ml-2 text-xs bg-blue-100 text-blue-700">
+                                    Included in total
+                                  </Badge>
+                                )}
+                              </Label>
+                              <div className="relative">
+                                <Input
+                                  placeholder={`Enter ${field.fieldName.toLowerCase()} (numeric values will be added to total)`}
+                                  value={field.fieldValue}
+                                  onChange={(e) =>
+                                    handleUpdateDynamicField(field.id, e.target.value)
+                                  }
+                                />
+                                {/* {isNumericField(field.fieldValue) && (
+                                  // <span className="absolute  left-4 top-1/2 -translate-y-1/2 text-gray-500">
+                                  //   {getCountryInfo(selectedCountry)?.symbol}
+                                  // </span>
+                                )} */}
+                              </div>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveDynamicField(field.id)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50 mt-6"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
 
@@ -425,9 +638,12 @@ export function FeeStructureSection({
                       </div>
                       <div className="text-2xl font-bold text-gray-900">
                         {getCountryInfo(selectedCountry)?.symbol}
-                        {watch('total')?.toFixed(2) || '0.00'}
+                        {calculateTotal().toFixed(2)}
                       </div>
                     </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      * Numeric dynamic field values are included in the total calculation
+                    </p>
                   </div>
                 </div>
               )}
@@ -439,6 +655,8 @@ export function FeeStructureSection({
                   onClick={() => {
                     setIsAddingNew(false);
                     setSelectedCountry('');
+                    setDynamicFields([]);
+                    setEditingCountry(null);
                   }}
                   disabled={isSubmitting}
                 >
@@ -449,8 +667,17 @@ export function FeeStructureSection({
                   disabled={!selectedCountry || isSubmitting}
                   className="bg-purple-600 hover:bg-purple-700"
                 >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add {getCountryInfo(selectedCountry)?.name} Fees
+                  {editingCountry ? (
+                    <>
+                      <Check className="h-4 w-4 mr-2" />
+                      Update {getCountryInfo(selectedCountry)?.name} Fees
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add {getCountryInfo(selectedCountry)?.name} Fees
+                    </>
+                  )}
                 </Button>
               </div>
             </Card>
@@ -461,7 +688,7 @@ export function FeeStructureSection({
         {!isAddingNew && getAvailableCountries().length === 0 && savedFees.length > 0 && (
           <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <p className="text-sm text-blue-800">
-              All available countries have been added. You can remove a country to add a different one.
+              All available countries have been added. You can edit or remove a country to make changes.
             </p>
           </div>
         )}
@@ -469,7 +696,6 @@ export function FeeStructureSection({
 
       {/* Navigation Buttons */}
       <div className="flex justify-between gap-4 pt-6 border-t">
-
         <Button
           type="button"
           onClick={handleFinalSave}

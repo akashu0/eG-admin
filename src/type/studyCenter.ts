@@ -2,8 +2,6 @@
 export interface CreateCenterDto {
     name: string;
     location: string;
-    contactPerson: string;
-    contactNumber: string;
     address: string;
     status?: "active" | "inactive";
 }
@@ -14,8 +12,6 @@ export interface CenterResponse {
     _id: string; // Backend uses _id
     name: string;
     location: string;
-    contactPerson: string;
-    contactNumber: string;
     address: string;
     status: "active" | "inactive";
     createdAt: string;
@@ -27,8 +23,6 @@ export interface EarningCenter {
     id: string;
     name: string;
     location: string;
-    contactPerson: string;
-    contactNumber: string;
     address: string;
     status: "active" | "inactive";
     createdAt: string;

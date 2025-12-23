@@ -1,6 +1,5 @@
 // columns.tsx
 import { ColumnDef } from "@tanstack/react-table";
-import { Course } from "@/store/countryStore";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import {
@@ -11,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
+import { Course } from "@/store/courseStore";
 
 interface ColumnProps {
   onEdit: (course: Course) => void;

@@ -23,7 +23,7 @@ export interface VisaRenewalDocument {
 }
 
 export interface Visa {
-    _id: string;
+    id: string;
     country: string;
     visaDocuments: VisaDocument[];
     visaFee: string;

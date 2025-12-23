@@ -93,16 +93,22 @@ export function AddEditVisaModal({
 
         try {
             if (visa) {
-                await visaService.updateVisa(visa._id, formData);
+                await visaService.updateVisa(visa.id, formData);
                 toast.success("Visa updated successfully");
             } else {
                 await visaService.createVisa(formData);
                 toast.success("Visa created successfully");
             }
             onSuccess();
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error saving visa:", error);
-            toast.error("Failed to save visa");
+
+            // Extract error message from backend response
+            const errorMessage = error?.response?.data?.message ||
+                error?.message ||
+                "Failed to save visa";
+
+            toast.error(errorMessage);
         } finally {
             setIsLoading(false);
         }
@@ -144,6 +150,15 @@ export function AddEditVisaModal({
     };
 
     const updateVisaStep = (index: number, field: keyof Omit<VisaStep, 'id'>, value: any) => {
+        // Validate description word count (max 5 words)
+        if (field === 'description' && value) {
+            const wordCount = value.trim().split(/\s+/).filter(Boolean).length;
+            if (wordCount > 5) {
+                toast.error("Description should be maximum 5 words");
+                return;
+            }
+        }
+
         setFormData(prev => ({
             ...prev,
             visaSteps: prev.visaSteps.map((step, i) =>
@@ -183,6 +198,11 @@ export function AddEditVisaModal({
             ...prev,
             renewalDocuments: prev.renewalDocuments.filter((_, i) => i !== index),
         }));
+    };
+
+    // Helper function to count words
+    const getWordCount = (text: string) => {
+        return text.trim().split(/\s+/).filter(Boolean).length;
     };
 
     return (
@@ -443,12 +463,18 @@ export function AddEditVisaModal({
                                                 </div>
                                             </div>
                                             <div className="space-y-2">
-                                                <Label>Description</Label>
-                                                <Textarea
+                                                <Label>
+                                                    Description (Optional - Max 5 words)
+                                                    {step.description && (
+                                                        <span className={`ml-2 text-xs ${getWordCount(step.description) > 5 ? 'text-red-600' : 'text-gray-500'}`}>
+                                                            ({getWordCount(step.description)}/5 words)
+                                                        </span>
+                                                    )}
+                                                </Label>
+                                                <Input
                                                     value={step.description}
                                                     onChange={(e) => updateVisaStep(index, 'description', e.target.value)}
-                                                    placeholder="Describe this step..."
-                                                    rows={2}
+                                                    placeholder="Brief description (max 5 words)"
                                                 />
                                             </div>
                                         </div>
